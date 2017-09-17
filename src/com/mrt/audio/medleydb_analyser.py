@@ -187,8 +187,8 @@ if __name__ == '__main__':
     import sys
     print(sys.version)
 
-    rootDir = '/Volumes/Bhrigu/data/medleyDb/MedleyDB/Audio/'
-    destDir = 'C:/Users/subod_000/Documents/masks/'
+    rootDir = '/path/to/MedleyDB/Audio/'
+    destDir = '/path/to/masks/'
 
     dbAnalyser =  MedleyDBAnalyser(rootDir,destDir)
 

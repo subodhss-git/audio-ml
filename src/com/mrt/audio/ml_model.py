@@ -10,7 +10,7 @@ N_BINS  =513
 N_SAMPLES=20
 VECTOR_SIZE=N_BINS * N_SAMPLES
 
-logs_path = "/Users/subodhss/Downloads/tensorlog/1"
+logs_path = "/path/to/tensorboard/log/"
 rootDir = '/path/to/MedleyDB/Audio/'
 destDir = '/path/to/masks/dir/'
 

@@ -12,7 +12,7 @@ VECTOR_SIZE=N_BINS * N_SAMPLES
 
 logs_path = "/path/to/tensorboard/log/"
 rootDir = '/path/to/MedleyDB/Audio/'
-destDir = '/path/to/masks/dir/'
+destDir = '/Volumes/Bhrigu/data/medleyDb/masks/'
 
 class VocalSeparator:
 
@@ -22,16 +22,6 @@ class VocalSeparator:
 
     def variable_summaries(self,var):
         pass
-        # """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
-        # with tf.name_scope('summaries'):
-        #   mean = tf.reduce_mean(var)
-        #   tf.summary.scalar('mean', mean)
-        #   with tf.name_scope('stddev'):
-        #     stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
-        #   tf.summary.scalar('stddev', stddev)
-        #   tf.summary.scalar('max', tf.reduce_max(var))
-        #   tf.summary.scalar('min', tf.reduce_min(var))
-        #   tf.summary.histogram('histogram', var)
 
     def _weightVariable(self,shape):
         """weight_variable generates a weight variable of a given shape."""
@@ -72,7 +62,6 @@ class VocalSeparator:
             # self._keep_prob = tf.placeholder(tf.float32)
             # y_drop = tf.nn.dropout(y, self._keep_prob)
             z  = tf.matmul(y, Wyz)
-            # z = tf.nn.tanh(tf.matmul(y, Wyz) )
             self.z = z
         with tf.name_scope('cross_entropy'):
             # Cost 1
@@ -83,31 +72,25 @@ class VocalSeparator:
 
         with tf.name_scope('Accuracy'):
             # Accuracy = dot product between perdiction and ideal mask
-            prediction = tf.nn.sigmoid(z)
-            dotProduct = tf.reduce_mean(tf.matmul(a=prediction,b=tf.transpose(z_)))
-            norm_z= tf.reduce_mean(tf.matmul(a=prediction,b=tf.transpose(prediction)))
-            norm_z_ = tf.reduce_mean(tf.matmul(a=z_,b=tf.transpose(z_)))
-            if norm_z == 0 or norm_z_ == 0:
-                cos_theta = 0.0
-            else:
-                cos_theta = dotProduct / (norm_z * norm_z_)
-            # cosine = dotProduct / (norm_z * norm_z_)
-            # accuracy = tf.reduce_mean(tf.cast(dotProduct, tf.float32))
+            p = tf.sigmoid(z)
+            p = tf.round(p)
+
+            dotProduct = tf.reduce_sum(tf.multiply(z_, p), 1)
+            norm_z = tf.sqrt(tf.reduce_sum(tf.multiply(p, p), 1))
+            norm_z_ = tf.sqrt(tf.reduce_sum(tf.multiply(z_, z_), 1))
+            norm = tf.multiply(norm_z, norm_z_)
+            dotProduct = tf.divide(dotProduct, norm)
             self._accuracy_1 = dotProduct
-            self._accuracy_2 = norm_z
-            self._accuracy_3 = norm_z_
+            self._accuracy_2 = tf.reduce_sum(p,1)
+            self._accuracy_3 = tf.reduce_sum(z_,1)
 
 
-        learning_rate = 1.0e-1
+        learning_rate = 1.0e-2
         with tf.name_scope('train'):
             # Optimizer
 
             train_op = tf.train.AdamOptimizer(learning_rate).minimize(self._cross_entropy);
             self._train_op=train_op
-
-        #tf.summary.scalar("cost",cross_entropy);
-        #tf.summary.scalar("accuracy", accuracy);
-        #writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
 
     def train(self):
 
@@ -117,10 +100,11 @@ class VocalSeparator:
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            numEpochs = 1000
-            for epoch in range(0,numEpochs):
+            NUM_EPOCHS = 1000
+            BATCH_SIZE=5
+            for epoch in range(0,NUM_EPOCHS):
                 i=0
-                batches = medley.getSampleBatch(batchSize=20)
+                batches = medley.getSampleBatch(batchSize=BATCH_SIZE)
                 for batch in batches:
                     if i == 0:
                         start_time = time.time()
@@ -134,8 +118,10 @@ class VocalSeparator:
 
                         end_time = time.time()
                         elapsed_time = end_time - start_time
-                        print('training step...[ epoch=',epoch,'iteration=',i,'samples=',i*20, 'time[s]=', elapsed_time)
-                        print('\t\t','accuracy=',train_accuracy_1,train_accuracy_2,train_accuracy_3 )
+                        print('epoch# ',epoch,'\t iteration# ',i,'\tsamples#',i*BATCH_SIZE, '\ttime[s]=', elapsed_time)
+                        print('\t\t dotProduct=',train_accuracy_1)
+                        print('\t\t sum of predictions=',train_accuracy_2)
+                        print('\t\t sum of lables=',train_accuracy_3 )
                         start_time = time.time()
                         time.sleep(0.25)
 
@@ -157,7 +143,7 @@ if __name__ == '__main__':
 
     import sys
     print(sys.version)
-    tensorboard_log_dir = '/Users/subodhss/Downloads/tensorlog/1'
+    tensorboard_log_dir = '/path/to/tensorboard/log'
     parser = argparse.ArgumentParser()
     parser.add_argument('--fake_data', nargs='?', const=True, type=bool,
                         default=False,

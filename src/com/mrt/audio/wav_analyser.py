@@ -287,6 +287,7 @@ class WavAnalyser:
 
 
     def rawWavFile(self,fileName):
+        # open wav file without librosa
 
         raw = wave.open(fileName,'rb');
         params = raw.getparams();

@@ -173,7 +173,7 @@ class MedleyDBAnalyser:
             fn_abs = lambda t: np.float32(np.absolute(t))
             x = np.array([fn_abs(t) for t in x])
 
-            fn_bit = lambda t: np.float32(1 if t else -1)
+            fn_bit = lambda t: np.float32(1 if t else 0)
             _y = np.array([fn_bit(t) for t in _y])
 
             yield (x, _y)

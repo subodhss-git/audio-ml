@@ -1,0 +1,7 @@
+# function to convert a hex string to vector<unsigned char> 
+# <strencodings.h>
+std::vector<unsigned char> ParseHex(const std::string& str)
+
+
+
+
